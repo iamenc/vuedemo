@@ -1,113 +1,156 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links</h2>
-    <ul>
-      <li>
-        <a
-          href="https://vuejs.org"
-          target="_blank"
-        >
-          Core Docs
-        </a>
-      </li>
-      <li>
-        <a
-          href="https://forum.vuejs.org"
-          target="_blank"
-        >
-          Forum
-        </a>
-      </li>
-      <li>
-        <a
-          href="https://chat.vuejs.org"
-          target="_blank"
-        >
-          Community Chat
-        </a>
-      </li>
-      <li>
-        <a
-          href="https://twitter.com/vuejs"
-          target="_blank"
-        >
-          Twitter
-        </a>
-      </li>
-      <br>
-      <li>
-        <a
-          href="http://vuejs-templates.github.io/webpack/"
-          target="_blank"
-        >
-          Docs for This Template
-        </a>
-      </li>
-    </ul>
-    <h2>Ecosystem</h2>
-    <ul>
-      <li>
-        <a
-          href="http://router.vuejs.org/"
-          target="_blank"
-        >
-          vue-router
-        </a>
-      </li>
-      <li>
-        <a
-          href="http://vuex.vuejs.org/"
-          target="_blank"
-        >
-          vuex
-        </a>
-      </li>
-      <li>
-        <a
-          href="http://vue-loader.vuejs.org/"
-          target="_blank"
-        >
-          vue-loader
-        </a>
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/awesome-vue"
-          target="_blank"
-        >
-          awesome-vue
-        </a>
-      </li>
-    </ul>
-  </div>
+  <el-row :gutter="20">
+    <el-col :span="24" :offset="0">
+      <el-upload
+        class="avatar-uploader"
+        action="#"
+        :show-file-list="false"
+        :on-progress="onchange"
+      >
+        <img v-if="imageUrl" :src="imageUrl" class="avatar" />
+        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+      </el-upload>
+    </el-col>
+
+    <el-col :span="24" :offset="0">
+      <sperm-show :srcimg="imageUrl" />
+    </el-col>
+
+    <el-row :span="24" v-for="(img, index) in imgb64s" :key="index">
+      <el-col :span="6" :offset="0">
+        <img
+          :style="{ 'background-color': getColor(img.classesNormal) }"
+          :src="'data:image/png;base64,' + img.rgbaB64"
+          alt=""
+          class="imgshow"
+        />
+      </el-col>
+      <el-col :span="6" :offset="0" v-if="img.head != ''">
+        <img
+          :src="'data:image/png;base64,' + img.head.rgbaB64"
+          alt=""
+          class="imgshow"
+        />
+      </el-col>
+      <el-col :span="6" :offset="0" v-if="img.head != ''">
+        <img
+          :src="'data:image/png;base64,' + img.body.rgbaB64"
+          alt=""
+          class="imgshow"
+        />
+      </el-col>
+      <el-col :span="6" :offset="0" v-if="img.head != ''">
+        <img
+          :src="'data:image/png;base64,' + img.tail.rgbaB64"
+          alt=""
+          class="imgshow"
+        />
+      </el-col>
+    </el-row>
+  </el-row>
 </template>
 
-<script>
-export default {
-  name: 'HelloWorld',
-  data () {
-    return {
-      msg: 'Welcome to Your Vue.js App'
-    }
-  }
+<style>
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
-</script>
+.avatar-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h1, h2 {
-  font-weight: normal;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+.imgshow {
+  border: 5px dotted purple;
+  border-radius: 15px;
+  padding: 15px;
+  background-color: rgb(56, 133, 69);
 }
 </style>
+
+<script>
+import SpermShow from "./sub/spermShow.vue";
+import uploadSperm from "./sub/uploadSperm.vue";
+export default {
+  components: { uploadSperm, SpermShow },
+  data() {
+    return {
+      imageUrl: "",
+      imgb64s: [],
+      // api_url: "https://jsonplaceholder.typicode.com/posts/",
+      api_url: "http://localhost:8080/api/sperm-project/compute/",
+    };
+  },
+  methods: {
+    onchange(err, file, filelist) {
+      // console.log(file);
+      this.getBase64(file.raw).then((res) => {
+        console.log(res);
+        this.imageUrl = res;
+        this.$axios({
+          url: this.api_url,
+          method: "post",
+          data: {
+            imgName: file.name,
+            imgb64: res,
+          },
+        })
+          .then((res) => {
+            // this.imgb64s = res.data.imgb64s
+            this.imgb64s = res.data[0].sperms;
+            console.log(res.data);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      });
+    },
+
+    getBase64(file) {
+      return new Promise(function (resolve, reject) {
+        let reader = new FileReader();
+        let imgResult = "";
+        reader.readAsDataURL(file);
+        reader.onload = function () {
+          imgResult = reader.result;
+        };
+        reader.onerror = function (error) {
+          reject(error);
+        };
+        reader.onloadend = function () {
+          resolve(imgResult);
+        };
+      });
+    },
+
+    getColor(a) {
+      if (a == "abnormal") {
+        return "red";
+      }
+      if (a == "normal") {
+        return "skyblue";
+      }
+      if (a == "false") {
+        return "black";
+      } else {
+        return "blue";
+      }
+    },
+  },
+};
+</script>
