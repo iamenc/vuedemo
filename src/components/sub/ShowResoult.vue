@@ -10,24 +10,24 @@
     <svg height="100%" width="100%">
       <path
         v-for="(item, index) in sperms"
-        :key="'head'+index"
+        :key="'head' + index"
         :d="getStrPath(item.head.countour, item.centerP)"
+        style="fill: green;"
+        class="svg-item-ok"
+      />
+      <path
+        v-for="(item, index) in sperms"
+        :key="'body' + index"
+        :d="getStrPath(item.body.countour, item.centerP)"
+        style="fill: blue;"
+        class="svg-item-ok"
+      />
+      <path
+        v-for="(item, index) in sperms"
+        :key="'tail' + index"
+        :d="getStrPath(item.tail.countour, item.centerP)"
         style="fill: red;"
         class="svg-item-ok"
-      />
-      <path
-        v-for="(item, index) in sperms"
-        :key="'body'+index"
-        :d="getStrPath(item.body.countour, item.centerP)"
-        class="svg-item-ok"
-        style="fill: blue;"
-      />
-      <path
-        v-for="(item, index) in sperms"
-        :key="'tail'+index"
-        :d="getStrPath(item.tail.countour, item.centerP)"
-        class="svg-item-ok"
-        style="fill: green;"
       />
     </svg>
   </div>
@@ -47,8 +47,8 @@ export default {
   methods: {
     getStrPath(counters, centerP) {
       var rstr = "";
-      if (counters==undefined) {
-          return rstr
+      if (counters == undefined) {
+        return rstr;
       }
       for (var k = 0; k < counters.length; k++) {
         for (var i = 0; i < counters[k].length; i++) {
@@ -58,11 +58,12 @@ export default {
             rstr += "L";
           }
           var p = counters[k][i][0];
-          rstr += (p[0] + centerP[0] - 192) + " " + (p[1] + centerP[1] - 192) + " ";
+          rstr +=
+            p[0] + centerP[0] - 192 + " " + (p[1] + centerP[1] - 192) + " ";
         }
         rstr += "Z ";
       }
-    //   alert(rstr);
+      //   alert(rstr);
       return rstr;
     },
   },
@@ -78,13 +79,14 @@ export default {
   box-sizing: border-box;
 }
 .svg-item-ok {
+  fill: lime;
   stroke-width: 1;
   opacity: 0.35;
-  transition:fill 300ms;
 }
 .svg-item-ok:hover {
   fill: yellow;
   stroke-width: 1;
   opacity: 0.5;
+  transition: fill 300ms;
 }
 </style>
